@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PROTOCOL: BOUND & BROKEN</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #050505; color: #e5e5e5; font-family: 'Courier New', Courier, monospace; }
+        .glitch-border { border: 1px solid #333; box-shadow: 0 0 15px rgba(255, 0, 0, 0.1); }
+        .btn-red { background: #450a0a; border: 1px solid #ef4444; color: #ef4444; }
+        .btn-yellow { background: #422006; border: 1px solid #eab308; color: #eab308; }
+        .active-btn:active { transform: scale(0.95); opacity: 0.8; }
+        #safetyOverlay { backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-6">
+
+    <div class="w-full max-w-md flex justify-between text-xs tracking-tighter mb-10 border-b border-zinc-800 pb-2">
+        <div>GIVER XP: <span id="giverXP" class="text-red-500 font-bold">0</span></div>
+        <div class="text-zinc-600">PROTOCOL: v1.0</div>
+        <div>RCVR XP: <span id="rcvrXP" class="text-red-500 font-bold">0</span></div>
+    </div>
+
+    <div id="gameCard" class="w-full max-w-md bg-zinc-900 p-8 rounded-sm glitch-border text-center">
+        <h2 id="categoryTitle" class="text-red-600 text-xs font-black tracking-[0.3em] mb-4 uppercase">SYSTEM READY</h2>
+        <div id="taskDisplay" class="text-lg mb-10 leading-snug min-h-[120px] flex items-center justify-center italic">
+            "Initialising... Click Generate to receive your first command."
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mb-6">
+            <button onclick="useCard('red')" id="redBtn" class="btn-red py-3 text-[10px] font-bold uppercase active-btn">Red Card (Veto)</button>
+            <button onclick="useCard('yellow')" id="yellowBtn" class="btn-yellow py-3 text-[10px] font-bold uppercase active-btn">Yellow Card (Swap)</button>
+        </div>
+
+        <button onclick="drawTask()" class="w-full bg-white text-black py-4 font-black uppercase tracking-widest hover:bg-zinc-200 active-btn">Generate Command</button>
+    </div>
+
+    <button onclick="toggleSafety()" class="mt-10 text-zinc-600 text-[10px] border-b border-zinc-700 pb-1 hover:text-red-500 transition">ACCESS SAFETY & AFTERCARE MODULE</button>
+
+    <div id="safetyOverlay" class="hidden fixed inset-0 bg-black/95 p-8 overflow-y-auto z-50">
+        <h2 class="text-red-600 text-2xl font-black mb-6">SAFETY PROTOCOL</h2>
+        <div class="text-sm space-y-4 text-zinc-300">
+            <p><strong class="text-white">SHEARS:</strong> Paramedic shears must be visible. Never use knives near skin/wrap.</p>
+            <p><strong class="text-white">CIRCULATION:</strong> Check fingers/toes every 10 mins. If blue/cold, cut the wrap immediately.</p>
+            <p><strong class="text-white">AIRWAY:</strong> Never wrap over the nose/mouth. Side-lying position is safest for gags.</p>
+            <p><strong class="text-white">SIGNALS:</strong> Agree on a physical signal (e.g. dropping a ball) if vocal safe-words are impossible.</p>
+            <hr class="border-zinc-800">
+            <p><strong class="text-white text-lg">GRAND PRIZES (Select if Game Over):</strong></p>
+            <ul class="list-disc pl-5 space-y-2" id="prizeList"></ul>
+        </div>
+        <button onclick="toggleSafety()" class="mt-8 w-full bg-zinc-800 p-4 border border-zinc-600 uppercase text-xs">Return to Protocol</button>
+    </div>
+
+<script>
+    const database = {
+        "Entrapment": [
+            "Mummify the receiver from ankles to chest in pallet wrap. Arms pinned to sides.",
+            "Use PVC tape to bind wrists to a neck collar. Keep for 3 rounds.",
+            "Total body encasement in wrap. Only nose is left clear for breathing.",
+            "Self-Bondage: Receiver must wrap their own legs together before being gagged by Giver.",
+            "Tape the receiver's torso and arms to a sturdy chair. Lock for 15 minutes.",
+            "Hand Lockdown: Tape fingers into fists, then tape fists together and to the waist.",
+            "Double-Wrap: One layer of bandages, one layer of pallet wrap. Total stillness.",
+            "The Sarcophagus: Wrapped from ankles to neck. Receiver must be carried to the bed."
+        ],
+        "Neural Void": [
+            "Sensory Deprivation: Blindfold and heavy earmuffs for the next 15 minutes.",
+            "The Echo Command: Play a 'Don't Move' recording on loop in headphones.",
+            "Stillness Test: Place a coin on the receiver's shoulder. If it falls, 10 strikes.",
+            "Memory Trap: Give a 6-digit code. Receiver must recite it in 10 minutes.",
+            "The Object: For the next hour, receiver must not use the word 'I' or 'Me'.",
+            "The Watcher: Giver leaves the room but plays footsteps. Receiver must stay perfectly still.",
+            "False Release: Start to cut the wrap, but add 2 more layers instead."
+        ],
+        "Impact & Volt": [
+            "20 heavy strikes with the paddle. Receiver must count aloud.",
+            "E-stim Gauntlet: 2 minutes of constant pulse on sensitive zones.",
+            "Voltage Climb: Increase E-stim power every 30 seconds until they signal stop.",
+            "The Wartenberg Wheel: Trace a grid on the body. Follow with a stinging flick.",
+            "Rhythmic Impact: Match strikes to the rhythm of the E-stim pulse.",
+            "Stinging Rain: 50 fast, light finger-flicks across sensitive skin.",
+            "Cold Mark: Draw on skin with ice, then strike that exact spot."
+        ],
+        "Internal & Denial": [
+            "Insert a large plug and tape it in place. Must stay for 5 rounds.",
+            "The Edge Marathon: Bring to the brink 3 times. Stop abruptly on the 4th.",
+            "Frozen Entry: Use a metal toy that has been sitting in ice water.",
+            "Weighted Pull: Tie a rope to a plug and create a constant tension tug.",
+            "Ruined Edge: Climax is permitted, but only with ice applied at the peak.",
+            "No-Hands Edge: Edge the receiver using only a vibrator—no skin contact.",
+            "Dual Vibe: One internal on pulse, one external on constant. 5 minutes."
+        ],
+        "Escape Challenge": [
+            "Wrists taped behind back. 3 minutes to break free or face 20 strikes.",
+            "Mummy Hop: Hop across the room and back while fully wrapped. 4 mins.",
+            "The Key Hunt: Key is at the bottom of a bowl of ice. Mouth only. 2 mins.",
+            "Tape Mittens: Escape hands taped into fists. 5 mins.",
+            "The Knot: A complex knot is near your face. Untie using only teeth. 5 mins."
+        ]
+    };
+
+    const prizes = [
+        "The Monolith Overnight: Total mummification for a full night's sleep.",
+        "The Throne Flip: Winner binds the loser however they want for 1 hour.",
+        "The Silent Servant: 12 hours of total silence and household service.",
+        "The Spa Protocol: Loser provides full-body massage and bath to winner.",
+        "The Command Day: Winner issues 3 non-sexual decrees loser must follow."
+    ];
+
+    let giverXP = 0;
+    let rcvrXP = 0;
+    let redUsed = false;
+    let yellowUsed = false;
+
+    function drawTask() {
+        const categories = Object.keys(database);
+        const randomCat = categories[Math.floor(Math.random() * categories.length)];
+        const tasks = database[randomCat];
+        const task = tasks[Math.floor(Math.random() * tasks.length)];
+
+        document.getElementById('categoryTitle').innerText = randomCat;
+        document.getElementById('taskDisplay').innerText = task;
+        rcvrXP += 10;
+        updateXP();
+    }
+
+    function useCard(type) {
+        if (type === 'red' && !redUsed) {
+            redUsed = true;
+            document.getElementById('redBtn').style.opacity = "0.2";
+            document.getElementById('taskDisplay').innerText = "VETO USED. 50 XP PENALTY. DRAW NEW TASK.";
+            rcvrXP -= 50; 
+            updateXP();
+        } else if (type === 'yellow' && !yellowUsed) {
+            yellowUsed = true;
+            document.getElementById('yellowBtn').style.opacity = "0.2";
+            document.getElementById('taskDisplay').innerText += " (ROLES SWAPPED!)";
+            giverXP += 20;
+            updateXP();
+        }
+    }
+
+    function updateXP() {
+        document.getElementById('giverXP').innerText = giverXP;
+        document.getElementById('rcvrXP').innerText = rcvrXP;
+    }
+
+    function toggleSafety() {
+        const el = document.getElementById('safetyOverlay');
+        el.classList.toggle('hidden');
+        const list = document.getElementById('prizeList');
+        if (list.innerHTML === "") {
+            prizes.forEach(p => list.innerHTML += `<li>${p}</li>`);
+        }
+    }
+</script>
+</body>
+</html>
