@@ -3,155 +3,272 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PROTOCOL: BOUND & BROKEN</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Sovereignty: The Command Protocol</title>
     <style>
-        body { background-color: #050505; color: #e5e5e5; font-family: 'Courier New', Courier, monospace; }
-        .glitch-border { border: 1px solid #333; box-shadow: 0 0 15px rgba(255, 0, 0, 0.1); }
-        .btn-red { background: #450a0a; border: 1px solid #ef4444; color: #ef4444; }
-        .btn-yellow { background: #422006; border: 1px solid #eab308; color: #eab308; }
-        .active-btn:active { transform: scale(0.95); opacity: 0.8; }
-        #safetyOverlay { backdrop-filter: blur(10px); }
+        :root { 
+            --accent: #d4af37; --bg: #0a0a0a; --card: #161616;
+            --text: #ffffff; --crimson: #a00000; --success: #1e4d2b; --off: #2a2a2a;
+        }
+
+        body { 
+            background: var(--bg); color: var(--text); 
+            font-family: Arial, Helvetica, sans-serif; 
+            -webkit-font-smoothing: antialiased;
+            margin: 0; padding: 15px; display: flex; justify-content: center;
+        }
+
+        .container { 
+            max-width: 580px; width: 100%; background: var(--card); 
+            padding: 40px; border-radius: 40px; border: 2px solid #222; 
+            box-shadow: 0 50px 100px rgba(0,0,0,0.9); margin-top: 10px;
+        }
+        
+        h1 { font-weight: bold; text-align: center; text-transform: uppercase; letter-spacing: 12px; color: var(--accent); margin-bottom: 5px; font-size: 2.4rem; }
+        .subtitle { text-align: center; font-size: 0.9rem; color: #666; margin-bottom: 40px; text-transform: uppercase; letter-spacing: 6px; }
+        
+        .box { background: #1f1f1f; padding: 30px; margin-bottom: 30px; border-radius: 30px; border: 1px solid #333; font-size: 1.3rem; line-height: 1.8; color: #eee; }
+        .label { font-size: 0.9rem; text-transform: uppercase; font-weight: bold; color: var(--accent); display: block; margin-bottom: 15px; letter-spacing: 2px; }
+
+        .identity-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        input, select { width: 100%; padding: 20px; border: 1px solid #444; border-radius: 18px; background: #000; color: white; font-size: 1.2rem; box-sizing: border-box; font-family: Arial, sans-serif; }
+        
+        /* Arsenal Management Styling */
+        .add-row { display: flex; gap: 10px; margin-bottom: 15px; }
+        .add-input { flex: 1; padding: 15px; border-radius: 15px; font-size: 1.1rem; border: 1px solid #444; background: #000; color: #fff; }
+        .add-btn { background: var(--accent); color: black; border: none; padding: 0 20px; border-radius: 15px; cursor: pointer; font-weight: bold; font-size: 1.5rem; }
+
+        .btn { background: var(--crimson); color: white; border: none; padding: 25px; width: 100%; cursor: pointer; text-transform: uppercase; font-weight: bold; border-radius: 25px; font-size: 1.3rem; letter-spacing: 3px; transition: 0.2s; }
+        .btn:active { transform: scale(0.95); opacity: 0.9; }
+        .btn-sec { background: var(--off); margin-top: 12px; color: #aaa; }
+
+        .toggle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .t-btn { padding: 22px; border-radius: 20px; border: 1px solid #333; background: #111; color: #777; cursor: pointer; font-weight: bold; text-transform: uppercase; font-size: 0.9rem; }
+        .t-btn.on { background: var(--accent); color: #000; border-color: var(--accent); }
+        .t-btn.gear-on { background: var(--crimson); color: white; border-color: var(--crimson); }
+
+        .tag-cloud { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px; }
+        .tag { background: #000; padding: 12px 18px; border-radius: 15px; font-size: 1.1rem; cursor: pointer; border: 1px solid #333; color: #999; display: flex; align-items: center; gap: 10px; }
+        .tag.on { background: var(--crimson); color: white; border-color: var(--crimson); }
+        .del-x { color: #f00; font-weight: bold; font-size: 1.2rem; margin-left: 5px; opacity: 0.6; }
+
+        .timer-big { font-size: 6.5rem; text-align: center; color: #fff; font-weight: bold; margin: 20px 0; }
+        .instruction-highlight { color: var(--accent); font-weight: bold; font-size: 1.4rem; text-transform: uppercase; }
+        
+        .step { display: none; }
+        .active { display: block !important; }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-6">
+<body>
 
-    <div class="w-full max-w-md flex justify-between text-xs tracking-tighter mb-10 border-b border-zinc-800 pb-2">
-        <div>GIVER XP: <span id="giverXP" class="text-red-500 font-bold">0</span></div>
-        <div class="text-zinc-600">PROTOCOL: v1.0</div>
-        <div>RCVR XP: <span id="rcvrXP" class="text-red-500 font-bold">0</span></div>
+<div class="container">
+    <h1>SOVEREIGNTY</h1>
+    <div class="subtitle">The Command Protocol</div>
+
+    <audio id="snd-click" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
+    <audio id="snd-alarm" src="https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3"></audio>
+    <audio id="snd-success" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"></audio>
+
+    <div id="step1" class="step active">
+        <div class="box">
+            <span class="label">Participant 1</span>
+            <div class="identity-row">
+                <input type="text" id="p1_n" placeholder="Name">
+                <select id="p1_g">
+                    <option>Male Body</option><option>Female Body</option><option>Neutral</option>
+                </select>
+            </div>
+            <span class="label">Participant 2</span>
+            <div class="identity-row">
+                <input type="text" id="p2_n" placeholder="Name">
+                <select id="p2_g">
+                    <option>Female Body</option><option>Male Body</option><option>Neutral</option>
+                </select>
+            </div>
+            <span class="label" style="margin-top:10px;">Session Duration (Rounds)</span>
+            <input type="number" id="max_r" value="10">
+        </div>
+        <button class="btn" onclick="vibrate(50); playSnd('click'); nav(2);">Access The Arsenal</button>
     </div>
 
-    <div id="gameCard" class="w-full max-w-md bg-zinc-900 p-8 rounded-sm glitch-border text-center">
-        <h2 id="categoryTitle" class="text-red-600 text-xs font-black tracking-[0.3em] mb-4 uppercase">SYSTEM READY</h2>
-        <div id="taskDisplay" class="text-lg mb-10 leading-snug min-h-[120px] flex items-center justify-center italic">
-            "Initialising... Click Generate to receive your first command."
+    <div id="step2" class="step">
+        <div class="box">
+            <span class="label">Customize Your Arsenal</span>
+            <div id="vault-inject"></div>
         </div>
-
-        <div class="grid grid-cols-2 gap-3 mb-6">
-            <button onclick="useCard('red')" id="redBtn" class="btn-red py-3 text-[10px] font-bold uppercase active-btn">Red Card (Veto)</button>
-            <button onclick="useCard('yellow')" id="yellowBtn" class="btn-yellow py-3 text-[10px] font-bold uppercase active-btn">Yellow Card (Swap)</button>
-        </div>
-
-        <button onclick="drawTask()" class="w-full bg-white text-black py-4 font-black uppercase tracking-widest hover:bg-zinc-200 active-btn">Generate Command</button>
+        <button class="btn" onclick="vibrate(50); playSnd('click'); nav(3);">Confirm Protocol</button>
     </div>
 
-    <button onclick="toggleSafety()" class="mt-10 text-zinc-600 text-[10px] border-b border-zinc-700 pb-1 hover:text-red-500 transition">ACCESS SAFETY & AFTERCARE MODULE</button>
-
-    <div id="safetyOverlay" class="hidden fixed inset-0 bg-black/95 p-8 overflow-y-auto z-50">
-        <h2 class="text-red-600 text-2xl font-black mb-6">SAFETY PROTOCOL</h2>
-        <div class="text-sm space-y-4 text-zinc-300">
-            <p><strong class="text-white">SHEARS:</strong> Paramedic shears must be visible. Never use knives near skin/wrap.</p>
-            <p><strong class="text-white">CIRCULATION:</strong> Check fingers/toes every 10 mins. If blue/cold, cut the wrap immediately.</p>
-            <p><strong class="text-white">AIRWAY:</strong> Never wrap over the nose/mouth. Side-lying position is safest for gags.</p>
-            <p><strong class="text-white">SIGNALS:</strong> Agree on a physical signal (e.g. dropping a ball) if vocal safe-words are impossible.</p>
-            <hr class="border-zinc-800">
-            <p><strong class="text-white text-lg">GRAND PRIZES (Select if Game Over):</strong></p>
-            <ul class="list-disc pl-5 space-y-2" id="prizeList"></ul>
+    <div id="step3" class="step">
+        <div id="pre-round">
+            <div id="round-header" class="label" style="text-align:center; color:var(--accent); font-size: 1.3rem; margin-bottom:25px;">ROUND 1</div>
+            <div class="box"><span class="label">Active Trials</span><div class="toggle-grid" id="trial-toggles"></div></div>
+            <div class="box"><span class="label">Allowed Gear</span><div class="toggle-grid" id="gear-toggles"></div></div>
+            <button class="btn" onclick="vibrate(100); playSnd('click'); generateDecree();">Generate Decree</button>
         </div>
-        <button onclick="toggleSafety()" class="mt-8 w-full bg-zinc-800 p-4 border border-zinc-600 uppercase text-xs">Return to Protocol</button>
+
+        <div id="active-round" style="display:none;">
+            <div class="box"><div id="active-trial-text" style="text-align:center;"></div></div>
+            <div class="timer-big" id="clock">00:00</div>
+            <button class="btn" style="background:var(--success);" onclick="vibrate(200); playSnd('success'); finish(true);">Success</button>
+            <button class="btn btn-sec" onclick="finish(false);">Failure</button>
+        </div>
     </div>
+</div>
 
 <script>
-    const database = {
-        "Entrapment": [
-            "Mummify the receiver from ankles to chest in pallet wrap. Arms pinned to sides.",
-            "Use PVC tape to bind wrists to a neck collar. Keep for 3 rounds.",
-            "Total body encasement in wrap. Only nose is left clear for breathing.",
-            "Self-Bondage: Receiver must wrap their own legs together before being gagged by Giver.",
-            "Tape the receiver's torso and arms to a sturdy chair. Lock for 15 minutes.",
-            "Hand Lockdown: Tape fingers into fists, then tape fists together and to the waist.",
-            "Double-Wrap: One layer of bandages, one layer of pallet wrap. Total stillness.",
-            "The Sarcophagus: Wrapped from ankles to neck. Receiver must be carried to the bed."
-        ],
-        "Neural Void": [
-            "Sensory Deprivation: Blindfold and heavy earmuffs for the next 15 minutes.",
-            "The Echo Command: Play a 'Don't Move' recording on loop in headphones.",
-            "Stillness Test: Place a coin on the receiver's shoulder. If it falls, 10 strikes.",
-            "Memory Trap: Give a 6-digit code. Receiver must recite it in 10 minutes.",
-            "The Object: For the next hour, receiver must not use the word 'I' or 'Me'.",
-            "The Watcher: Giver leaves the room but plays footsteps. Receiver must stay perfectly still.",
-            "False Release: Start to cut the wrap, but add 2 more layers instead."
-        ],
-        "Impact & Volt": [
-            "20 heavy strikes with the paddle. Receiver must count aloud.",
-            "E-stim Gauntlet: 2 minutes of constant pulse on sensitive zones.",
-            "Voltage Climb: Increase E-stim power every 30 seconds until they signal stop.",
-            "The Wartenberg Wheel: Trace a grid on the body. Follow with a stinging flick.",
-            "Rhythmic Impact: Match strikes to the rhythm of the E-stim pulse.",
-            "Stinging Rain: 50 fast, light finger-flicks across sensitive skin.",
-            "Cold Mark: Draw on skin with ice, then strike that exact spot."
-        ],
-        "Internal & Denial": [
-            "Insert a large plug and tape it in place. Must stay for 5 rounds.",
-            "The Edge Marathon: Bring to the brink 3 times. Stop abruptly on the 4th.",
-            "Frozen Entry: Use a metal toy that has been sitting in ice water.",
-            "Weighted Pull: Tie a rope to a plug and create a constant tension tug.",
-            "Ruined Edge: Climax is permitted, but only with ice applied at the peak.",
-            "No-Hands Edge: Edge the receiver using only a vibrator—no skin contact.",
-            "Dual Vibe: One internal on pulse, one external on constant. 5 minutes."
-        ],
-        "Escape Challenge": [
-            "Wrists taped behind back. 3 minutes to break free or face 20 strikes.",
-            "Mummy Hop: Hop across the room and back while fully wrapped. 4 mins.",
-            "The Key Hunt: Key is at the bottom of a bowl of ice. Mouth only. 2 mins.",
-            "Tape Mittens: Escape hands taped into fists. 5 mins.",
-            "The Knot: A complex knot is near your face. Untie using only teeth. 5 mins."
-        ]
+    let players = [], curR = 1, maxR = 10, masterIdx = 0, timer, timeLeft;
+    
+    const defaultVault = {
+        "Blindfolds": ["Sleep Mask", "Hood", "Silk Scarf"],
+        "Gags": ["Ball Gag", "Sock Gag", "Medical Tape"],
+        "Restraints": ["Rope", "Zip Ties", "Leather Cuffs"],
+        "Sensation": ["Whip", "Ice Cube", "Vibrator", "Wartenberg Wheel"]
     };
 
-    const prizes = [
-        "The Monolith Overnight: Total mummification for a full night's sleep.",
-        "The Throne Flip: Winner binds the loser however they want for 1 hour.",
-        "The Silent Servant: 12 hours of total silence and household service.",
-        "The Spa Protocol: Loser provides full-body massage and bath to winner.",
-        "The Command Day: Winner issues 3 non-sexual decrees loser must follow."
-    ];
-
-    let giverXP = 0;
-    let rcvrXP = 0;
-    let redUsed = false;
-    let yellowUsed = false;
-
-    function drawTask() {
-        const categories = Object.keys(database);
-        const randomCat = categories[Math.floor(Math.random() * categories.length)];
-        const tasks = database[randomCat];
-        const task = tasks[Math.floor(Math.random() * tasks.length)];
-
-        document.getElementById('categoryTitle').innerText = randomCat;
-        document.getElementById('taskDisplay').innerText = task;
-        rcvrXP += 10;
-        updateXP();
+    let vault = JSON.parse(localStorage.getItem('sov_final_v3')) || null;
+    if(!vault) {
+        vault = {};
+        for(let c in defaultVault) vault[c] = defaultVault[c].map(n => ({n, on: true}));
     }
 
-    function useCard(type) {
-        if (type === 'red' && !redUsed) {
-            redUsed = true;
-            document.getElementById('redBtn').style.opacity = "0.2";
-            document.getElementById('taskDisplay').innerText = "VETO USED. 50 XP PENALTY. DRAW NEW TASK.";
-            rcvrXP -= 50; 
-            updateXP();
-        } else if (type === 'yellow' && !yellowUsed) {
-            yellowUsed = true;
-            document.getElementById('yellowBtn').style.opacity = "0.2";
-            document.getElementById('taskDisplay').innerText += " (ROLES SWAPPED!)";
-            giverXP += 20;
-            updateXP();
+    let trials = [
+        { 
+            n: "The Architect's Bind", 
+            t: 600, 
+            d: "The Master describes a position of total vulnerability, and the Subject must use <b>[REST]</b> to build that cage around themselves. Every knot or click of <b>[REST]</b> is done under the Master's watchful eye. To finalize the submission, the Master steps in to take away the Subject's sight with <b>[VIS]</b> and their voice with <b>[GAG]</b>, leaving them bound and waiting.", 
+            on: true 
+        },
+        { 
+            n: "The Sensory Void", 
+            t: 450, 
+            d: "Total sensory isolation. First, the Master seals away the Subject's senses using <b>[VIS]</b> and <b>[GAG]</b> until they are drifting in a silent, dark vacuum. The Master then uses <b>[SENS]</b> to ground them back in reality, dragging the <b>[SENS]</b> slowly across sensitive skin in long, teasing strokes or sharp, sudden bursts to keep the Subject guessing where the next touch will land.", 
+            on: true 
+        },
+        { 
+            n: "The Living Sculpture", 
+            t: 600, 
+            d: "The Master physically molds the Subject into a demanding or graceful pose, securing it firmly with <b>[REST]</b>. The Subject's only job is to become an unmoving object of art. While they are frozen, the Master 'paints' sensations across their body using <b>[SENS]</b>. The Subject must remain perfectly still; even the slightest shiver or twitch is a flaw in the Master's masterpiece.", 
+            on: true 
+        },
+        { 
+            n: "The Silent Confession", 
+            t: 450, 
+            d: "With <b>[VIS]</b> obscuring the world, the Subject is forced to listen only to the Master's voice. The Master whispers questions—secrets, desires, or truths—into the Subject's ear. If the Subject hesitates or if the Master is unsatisfied, <b>[SENS]</b> is applied as a sharp reminder of who is in control. If <b>[GAG]</b> is worn, the Subject must find a way to communicate their 'yes' or 'no' through body language or muffled sounds.", 
+            on: true 
+        }
+    ];
+
+    let gearCats = { "Blindfolds": true, "Gags": true, "Restraints": true, "Sensation": true };
+
+    function playSnd(id) { document.getElementById('snd-'+id).play(); }
+    function vibrate(ms) { if (navigator.vibrate) navigator.vibrate(ms); }
+
+    function nav(n) {
+        if(n === 2) {
+            players = [
+                {n: document.getElementById('p1_n').value || "P1"},
+                {n: document.getElementById('p2_n').value || "P2"}
+            ];
+            maxR = parseInt(document.getElementById('max_r').value);
+            renderVault();
+        }
+        if(n === 3) renderCommandCenter();
+        document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+        document.getElementById('step'+n).classList.add('active');
+    }
+
+    function renderVault() {
+        const cont = document.getElementById('vault-inject');
+        cont.innerHTML = '';
+        for(let c in vault) {
+            let section = document.createElement('div');
+            section.innerHTML = `
+                <span class="label">${c}</span>
+                <div class="add-row">
+                    <input type="text" class="add-input" id="in-${c}" placeholder="New ${c}...">
+                    <button class="add-btn" onclick="addItem('${c}')">+</button>
+                </div>
+                <div class="tag-cloud" id="cloud-${c}"></div>`;
+            cont.appendChild(section);
+
+            vault[c].forEach((item, i) => {
+                let t = document.createElement('div');
+                t.className = `tag ${item.on ? 'on' : ''}`;
+                t.innerHTML = `<span>${item.n}</span><span class="del-x" onclick="removeItem('${c}', ${i}); event.stopPropagation();">×</span>`;
+                t.onclick = () => { item.on = !item.on; saveVault(); renderVault(); vibrate(20); };
+                document.getElementById(`cloud-${c}`).appendChild(t);
+            });
         }
     }
 
-    function updateXP() {
-        document.getElementById('giverXP').innerText = giverXP;
-        document.getElementById('rcvrXP').innerText = rcvrXP;
+    function addItem(c) {
+        let val = document.getElementById(`in-${c}`).value;
+        if(val) {
+            vault[c].push({n: val, on: true});
+            document.getElementById(`in-${c}`).value = '';
+            saveVault(); renderVault();
+        }
     }
 
-    function toggleSafety() {
-        const el = document.getElementById('safetyOverlay');
-        el.classList.toggle('hidden');
-        const list = document.getElementById('prizeList');
-        if (list.innerHTML === "") {
-            prizes.forEach(p => list.innerHTML += `<li>${p}</li>`);
+    function removeItem(c, i) {
+        vault[c].splice(i, 1);
+        saveVault(); renderVault();
+    }
+
+    function saveVault() { localStorage.setItem('sov_final_v3', JSON.stringify(vault)); }
+
+    function renderCommandCenter() {
+        document.getElementById('round-header').innerText = `ROUND ${curR} | Master: ${players[masterIdx].n}`;
+        const tGrid = document.getElementById('trial-toggles'); tGrid.innerHTML = '';
+        trials.forEach((t, i) => {
+            let b = document.createElement('button'); b.className = `t-btn ${t.on ? 'on' : ''}`;
+            b.innerText = t.n; b.onclick = () => { t.on = !t.on; b.classList.toggle('on'); vibrate(30); };
+            tGrid.appendChild(b);
+        });
+        const gGrid = document.getElementById('gear-toggles'); gGrid.innerHTML = '';
+        for(let c in gearCats) {
+            let b = document.createElement('button'); b.className = `t-btn ${gearCats[c] ? 'gear-on' : ''}`;
+            b.innerText = c; b.onclick = () => { gearCats[c] = !gearCats[c]; b.classList.toggle('gear-on'); vibrate(30); };
+            gGrid.appendChild(b);
+        }
+    }
+
+    function generateDecree() {
+        let activeTrials = trials.filter(t => t.on);
+        if(!activeTrials.length) return alert("Select at least one Trial.");
+        let t = activeTrials[Math.floor(Math.random() * activeTrials.length)];
+        const pick = (c) => { 
+            if(!gearCats[c]) return `<span style="opacity:0.3; font-size:1rem;">[SKIP ${c}]</span>`;
+            let items = vault[c].filter(i => i.on);
+            return `<span class="instruction-highlight">${items.length ? items[Math.floor(Math.random()*items.length)].n : c}</span>`; 
+        };
+        let text = t.d.replace('[REST]', pick('Restraints')).replace('[SENS]', pick('Sensation')).replace('[VIS]', pick('Blindfolds')).replace('[GAG]', pick('Gags'));
+        document.getElementById('active-trial-text').innerHTML = `<strong>${t.n.toUpperCase()}</strong><br><br>${text}`;
+        timeLeft = t.t;
+        document.getElementById('pre-round').style.display = 'none';
+        document.getElementById('active-round').style.display = 'block';
+        startClock();
+    }
+
+    function startClock() {
+        timer = setInterval(() => {
+            timeLeft--;
+            let m = Math.floor(timeLeft/60), s = timeLeft%60;
+            document.getElementById('clock').innerText = `${m}:${s < 10 ? '0'+s : s}`;
+            if(timeLeft === 10) { playSnd('alarm'); vibrate([100, 100, 100]); }
+            if(timeLeft <= 0) { clearInterval(timer); vibrate([500, 200, 500]); finish(false); }
+        }, 1000);
+    }
+
+    function finish(win) {
+        clearInterval(timer);
+        masterIdx = (masterIdx === 0 ? 1 : 0);
+        curR++;
+        if(curR > maxR) { alert("Protocol Concluded."); location.reload(); }
+        else {
+            document.getElementById('pre-round').style.display = 'block';
+            document.getElementById('active-round').style.display = 'none';
+            renderCommandCenter();
         }
     }
 </script>
